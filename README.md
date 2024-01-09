@@ -1,5 +1,5 @@
 # VeriTAG
-A Simple Watermarking and Ownership verification with Simple UI using C#.NET 
+A Simple Watermarking and Ownership verification Project for Software Engineering Course with Simple UI using C#.NET 
 Algorithm Used: LSB algorithm (Least Significant Bit) for PNG,BMP,etc.. images
 
 <h3>Welcome Page</h3>
