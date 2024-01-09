@@ -7,9 +7,11 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using static System.Net.Mime.MediaTypeNames;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
 
 
@@ -107,6 +109,45 @@ namespace SE_Project
             }
         }
 
+        public static bool CanEmbedText(Bitmap image, string text)
+        {
+            int maxTextLength = (image.Width * image.Height * 3) / 8;
+            return text.Length + 1 <= maxTextLength;
+        }
+
+        public static string CaesarCipherEncrypt(string text, int shift)
+        {
+            char[] buffer = text.ToCharArray();
+            for (int i = 0; i < buffer.Length; i++)
+            {
+                char letter = buffer[i];
+                if (char.IsLetter(letter))
+                {
+                    letter = (char)(letter + shift);
+
+                    if (letter > 'z')
+                    {
+                        letter = (char)(letter - 26);
+                    }
+                    else if (letter < 'a')
+                    {
+                        letter = (char)(letter + 26);
+                    }
+                }
+                buffer[i] = letter;
+            }
+            return new string(buffer);
+        }
+
+        public static byte[] CalculateImageHash(byte[] imageData)
+        {
+            using (SHA256 sha256 = SHA256.Create())
+            {
+                byte[] hashBytes = sha256.ComputeHash(imageData);
+                return hashBytes;
+            }
+        }
+
         private void btn_watermark_Click(object sender, EventArgs e)
         {
             try
@@ -119,34 +160,47 @@ namespace SE_Project
 
                     if (!string.IsNullOrEmpty(textToEmbed))
                     {
-
-                        LSBAlgorithm.EmbedText(imageToWatermark, textToEmbed);
-
-                        pic_watermarkedImg.Image = imageToWatermark;
-
-                        MessageBox.Show("Text successfully embedded.");
-                        try
+                        if (!CanEmbedText(imageToWatermark, textToEmbed))
                         {
-                            con.Open();
-                            cmd.Connection = con;
-                            cmd.CommandText = "INSERT INTO UserData (userID, imgText, img) VALUES (@usrID, @Text, @Image)";
-
-                            MemoryStream memoryStream = new MemoryStream();
-                            imageToWatermark.Save(memoryStream, ImageFormat.Png);
-                            cmd.Parameters.AddWithValue("@usrID", CurrentUser.UserId);
-                            cmd.Parameters.AddWithValue("@Text", textToEmbed.ToString());
-                            cmd.Parameters.AddWithValue("@Image", memoryStream.ToArray());
-
-                            cmd.ExecuteNonQuery();
-                            MessageBox.Show("Your data has been added to the database");
+                            MessageBox.Show("Error: Text too long for the given image.");
                         }
-                        catch (Exception ex)
+                        else
                         {
-                            MessageBox.Show(ex.ToString());
-                        }
-                        finally
-                        {
-                            con.Close();
+                            string encryptedText = CaesarCipherEncrypt(textToEmbed, 10);
+                            LSBAlgorithm.EmbedText(imageToWatermark, encryptedText+'\0');
+
+                            pic_watermarkedImg.Image = imageToWatermark;
+
+                            MessageBox.Show("Text successfully embedded.");
+                            try
+                            {
+                                con.Open();
+                                cmd.Connection = con;
+                                cmd.CommandText = "INSERT INTO UserData (userID, imgText, img, imgHash) VALUES (@usrID, @Text, @Image, @ImageHash)";
+
+                                MemoryStream memoryStream = new MemoryStream();
+                                imageToWatermark.Save(memoryStream, ImageFormat.Png);
+                                byte[] userImageHash = CalculateImageHash(memoryStream.ToArray());
+
+                                cmd.Parameters.AddWithValue("@usrID", CurrentUser.UserId);
+                                cmd.Parameters.AddWithValue("@Text", encryptedText.ToString());
+                                cmd.Parameters.AddWithValue("@Image", memoryStream.ToArray());
+                                cmd.Parameters.AddWithValue("@ImageHash", userImageHash);
+
+
+
+                                cmd.ExecuteNonQuery();
+                                MessageBox.Show("Your data has been added to the database");
+                               
+                            }
+                            catch (Exception ex)
+                            {
+                                MessageBox.Show(ex.Message.ToString());
+                            }
+                            finally
+                            {
+                                con.Close();
+                            }
                         }
                     }
                     else

@@ -43,16 +43,22 @@ namespace SE_Project
         }
     }
 
+
+
     public static class LSBAlgorithm
     {
         public static void EmbedText(Bitmap imagePath, string textToEmbed)
         {
-            string outputImagePath = "watermarked_image.png"; 
+            string outputImagePath = "watermarked_image.png";
+            textToEmbed += '\0';
+
 
             try
             {
                 Bitmap image = new Bitmap(imagePath);
                 int textIndex = 0;
+                char charToEmbed = textToEmbed[textIndex];
+
 
                 for (int y = 0; y < image.Height; y++)
                 {
@@ -60,7 +66,6 @@ namespace SE_Project
                     {
                         if (textIndex < textToEmbed.Length)
                         {
-                            char charToEmbed = textToEmbed[textIndex];
                             int charValue = (int)charToEmbed;
 
                             int newRed = EmbedLSB(image.GetPixel(x, y).R, (charValue >> 7) & 0x01);
@@ -75,7 +80,9 @@ namespace SE_Project
 
                             if ((charValue & 0x0100) == 0x0100)
                             {
-                                textIndex++; 
+                                textIndex++;
+                                charToEmbed = textToEmbed[textIndex];
+
                             }
                         }
                         else

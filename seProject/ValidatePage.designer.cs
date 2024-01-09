@@ -30,18 +30,18 @@
         {
             this.btn_watermark = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
-            this.txt_extractText = new System.Windows.Forms.TextBox();
             this.btn_selectImage = new System.Windows.Forms.Button();
             this.pic_Watermarked = new System.Windows.Forms.PictureBox();
             this.button1 = new System.Windows.Forms.Button();
+            this.lbl_extractText = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.pic_Watermarked)).BeginInit();
             this.SuspendLayout();
             // 
             // btn_watermark
             // 
-            this.btn_watermark.Location = new System.Drawing.Point(372, 265);
+            this.btn_watermark.Location = new System.Drawing.Point(372, 266);
             this.btn_watermark.Name = "btn_watermark";
-            this.btn_watermark.Size = new System.Drawing.Size(148, 51);
+            this.btn_watermark.Size = new System.Drawing.Size(148, 66);
             this.btn_watermark.TabIndex = 12;
             this.btn_watermark.Text = "Extract Watermark";
             this.btn_watermark.UseVisualStyleBackColor = true;
@@ -55,15 +55,6 @@
             this.label1.Size = new System.Drawing.Size(111, 20);
             this.label1.TabIndex = 11;
             this.label1.Text = "Extracted Text";
-            // 
-            // txt_extractText
-            // 
-            this.txt_extractText.Location = new System.Drawing.Point(268, 337);
-            this.txt_extractText.Multiline = true;
-            this.txt_extractText.Name = "txt_extractText";
-            this.txt_extractText.Size = new System.Drawing.Size(356, 73);
-            this.txt_extractText.TabIndex = 10;
-            this.txt_extractText.TextChanged += new System.EventHandler(this.txt_extractText_TextChanged);
             // 
             // btn_selectImage
             // 
@@ -96,15 +87,30 @@
             this.button1.UseVisualStyleBackColor = true;
             this.button1.Click += new System.EventHandler(this.button1_Click);
             // 
+            // lbl_extractText
+            // 
+            this.lbl_extractText.AutoSize = true;
+            this.lbl_extractText.BackColor = System.Drawing.SystemColors.ButtonHighlight;
+            this.lbl_extractText.Location = new System.Drawing.Point(268, 363);
+            this.lbl_extractText.MaximumSize = new System.Drawing.Size(356, 1000);
+            this.lbl_extractText.MinimumSize = new System.Drawing.Size(356, 138);
+            this.lbl_extractText.Name = "lbl_extractText";
+            this.lbl_extractText.Padding = new System.Windows.Forms.Padding(10);
+            this.lbl_extractText.Size = new System.Drawing.Size(356, 138);
+            this.lbl_extractText.TabIndex = 14;
+            this.lbl_extractText.Text = "example: hello world";
+            this.lbl_extractText.Click += new System.EventHandler(this.lbl_extractText_Click);
+            // 
             // ValidatePage
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(800, 450);
+            this.AutoSize = true;
+            this.ClientSize = new System.Drawing.Size(800, 522);
+            this.Controls.Add(this.lbl_extractText);
             this.Controls.Add(this.button1);
             this.Controls.Add(this.btn_watermark);
             this.Controls.Add(this.label1);
-            this.Controls.Add(this.txt_extractText);
             this.Controls.Add(this.btn_selectImage);
             this.Controls.Add(this.pic_Watermarked);
             this.Name = "ValidatePage";
@@ -120,9 +126,9 @@
 
         private System.Windows.Forms.Button btn_watermark;
         private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.TextBox txt_extractText;
         private System.Windows.Forms.Button btn_selectImage;
         private System.Windows.Forms.PictureBox pic_Watermarked;
         private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.Label lbl_extractText;
     }
 }

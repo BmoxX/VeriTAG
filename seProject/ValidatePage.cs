@@ -2,11 +2,13 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Data.SqlClient;
 using System.Data.SQLite;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -25,6 +27,40 @@ namespace SE_Project
             InitializeComponent();
         }
 
+        public static string CaesarCipherEncrypt(string text, int shift)
+        {
+            char[] buffer = text.ToCharArray();
+            for (int i = 0; i < buffer.Length; i++)
+            {
+                char letter = buffer[i];
+                if (char.IsLetter(letter))
+                {
+                    letter = (char)(letter + shift);
+
+                    if (letter > 'z')
+                    {
+                        letter = (char)(letter - 26);
+                    }
+                    else if (letter < 'a')
+                    {
+                        letter = (char)(letter + 26);
+                    }
+                }
+                buffer[i] = letter;
+            }
+            return new string(buffer);
+        }
+
+
+        public static byte[] CalculateImageHash(byte[] imageData)
+        {
+            using (SHA256 sha256 = SHA256.Create())
+            {
+                byte[] hashBytes = sha256.ComputeHash(imageData);
+                return hashBytes;
+            }
+        }
+
         private void btn_watermark_Click(object sender, EventArgs e)
         {
             try
@@ -35,40 +71,53 @@ namespace SE_Project
                 {
                     string extractedText = LSBAlgorithm.ExtractText(watermarkedImage);
 
-                    txt_extractText.Text = extractedText.ToString();
+                    string decryptedText = CaesarCipherEncrypt(extractedText, -10);
 
-                    MessageBox.Show($"Extracted watermark text: {extractedText}");
+                    lbl_extractText.Text = decryptedText.ToString();
 
                     try
                     {
                         con.Open();
                         cmd.Connection = con;
-                        cmd.CommandText = "SELECT * FROM Users WHERE userID=@usrID AND img=@Image";
+                        cmd.CommandText = "SELECT * FROM UserData WHERE userID=@usrID AND imgHash=@userImageHash";
 
                         MemoryStream memoryStream = new MemoryStream();
                         watermarkedImage.Save(memoryStream, ImageFormat.Png);
+                        byte[] userImageHash = CalculateImageHash(memoryStream.ToArray());
 
                         cmd.Parameters.AddWithValue("@usrID", CurrentUser.UserId);
-                        cmd.Parameters.AddWithValue("@Image", memoryStream.ToArray());
+                        cmd.Parameters.AddWithValue("@userImageHash", userImageHash);
 
-                        MessageBox.Show(dr["imgText"].ToString());
+                        using (dr = cmd.ExecuteReader())
+                        {
+                            if (dr.Read())
+                            {
+                                string imgText = dr["imgText"].ToString();
 
-                        if (extractedText.ToString() == dr["imgText"].ToString())
-                        {
-                            MessageBox.Show("User Authentication Succussed");
-                        }
-                        else
-                        {
-                            MessageBox.Show("User Authentication Failed");
+                                if (decryptedText == imgText)
+                                {
+                                    MessageBox.Show("User Authentication Succeeded");
+                                }
+                                else
+                                {
+                                    MessageBox.Show("User Authentication Failed");
+                                }
+                            }
+                            else
+                            {
+                                MessageBox.Show("No matching record found.");
+                            }
                         }
                     }
-                    catch(Exception ex) {
+                    catch (Exception ex)
+                    {
                         MessageBox.Show(ex.Message);
                     }
                     finally
                     {
                         con.Close();
                     }
+
                 }
                 else
                 {
@@ -116,6 +165,11 @@ namespace SE_Project
         }
 
         private void ValidatePage_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        private void lbl_extractText_Click(object sender, EventArgs e)
         {
 
         }
